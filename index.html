@@ -1,0 +1,260 @@
+<title>The Hole</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: inputs on the left, the hole and its answers on the right; stacks on a phone. */
+:root {
+  --paper: #eef1f5;
+  --panel: #ffffff;
+  --ink: #1a2230;
+  --ink-soft: #5a6577;
+  --line: #d5dce6;
+  --block: #f2b01e;
+  --accent: #2c55e0;
+  --ok: #1f8a57;
+  --warn: #c77a0a;
+  --bad: #cf3b34;
+  --track: #dfe5ee;
+  --display: "Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
+  --body: "Figtree", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #121823; --panel: #1b2332; --ink: #e9eef6; --ink-soft: #9aa6b8;
+    --line: #2d384b; --block: #f5bd3a; --accent: #7b9bff; --ok: #4cc58a;
+    --warn: #eea53a; --bad: #ff7a72; --track: #283245; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #121823; --panel: #1b2332; --ink: #e9eef6; --ink-soft: #9aa6b8;
+  --line: #2d384b; --block: #f5bd3a; --accent: #7b9bff; --ok: #4cc58a;
+  --warn: #eea53a; --bad: #ff7a72; --track: #283245; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--body);
+  font-size: 15px; line-height: 1.5;
+  padding-block: 28px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1040px; margin: 0 auto; display: grid; gap: 24px; }
+h1 { font-family: var(--display); font-weight: 800; font-size: clamp(34px, 6vw, 52px); line-height: 1; margin: 0; letter-spacing: -0.02em; text-wrap: balance; }
+.lede { max-width: 62ch; color: var(--ink-soft); margin: 10px 0 0; }
+.lede b { color: var(--ink); font-weight: 600; }
+.cols { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 760px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: grid; gap: 16px; }
+h2 { font-family: var(--display); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-soft); margin: 0; }
+.field { display: grid; gap: 4px; }
+.field label { font-weight: 600; display: flex; gap: 8px; align-items: center; }
+.chip { width: 11px; height: 11px; background: var(--block); border-radius: 2px; flex: none; }
+.chip.hole { background: var(--accent); border-radius: 50%; }
+.hint { font-size: 13px; color: var(--ink-soft); }
+.input-row { display: flex; align-items: center; gap: 8px; }
+input[type="number"] {
+  width: 100%; font: 500 16px var(--mono); color: var(--ink); background: var(--paper);
+  border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px;
+  font-variant-numeric: tabular-nums;
+}
+input[type="number"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.unit { font: 400 13px var(--mono); color: var(--ink-soft); white-space: nowrap; }
+.group-title { border-top: 1px solid var(--line); padding-top: 14px; }
+
+.verdict { display: grid; gap: 4px; }
+.status { align-self: start; justify-self: start; font: 500 12px var(--mono); text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 9px; border-radius: 99px; color: #fff; background: var(--ok); }
+.status.warn { background: var(--warn); }
+.status.bad { background: var(--bad); }
+.headline { font-family: var(--display); font-weight: 800; font-size: clamp(24px, 4vw, 34px); line-height: 1.1; margin: 6px 0 0; text-wrap: balance; }
+.sub { color: var(--ink-soft); margin: 0; max-width: 60ch; }
+
+.meter { display: grid; gap: 8px; }
+.bar { position: relative; height: 44px; background: var(--track); border-radius: 6px; overflow: hidden; }
+.bar .cap { position: absolute; inset: 0 auto 0 0; background: var(--accent); opacity: .22; }
+.bar .safe { position: absolute; inset: 0 auto 0 0; background: var(--accent); opacity: .5; }
+.tick { position: absolute; top: -4px; bottom: -4px; width: 4px; margin-left: -2px; background: var(--block); border-radius: 2px; box-shadow: 0 0 0 2px var(--panel); }
+.bar-wrap { position: relative; padding-block: 4px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--ink-soft); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stat { padding: 14px 16px; display: grid; gap: 2px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); margin: 0 -1px -1px 0; }
+.stat .k { font-size: 13px; color: var(--ink-soft); }
+.stat .v { font: 500 24px var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.stat .n { font-size: 12.5px; color: var(--ink-soft); }
+
+.note { margin: 0; max-width: 66ch; color: var(--ink-soft); font-size: 14px; }
+.note b { color: var(--ink); font-weight: 600; }
+.note a { color: var(--accent); }
+.note a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+details { border-top: 1px solid var(--line); padding-top: 14px; }
+summary { cursor: pointer; font-weight: 600; }
+summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.rules { margin: 12px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.rules li { display: grid; gap: 2px; }
+code { font: 400 13px var(--mono); background: var(--paper); padding: 2px 6px; border-radius: 4px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>The Hole</h1>
+    <p class="lede">You have a pile of <b>blocks</b> (requests) and a <b>hole</b> to push them through (your pods and load balancer). Three questions: how big is the hole, how many blocks fit through at once, and how long until they are all through.</p>
+  </header>
+
+  <div class="cols">
+    <section class="panel" aria-label="Inputs">
+      <h2>The blocks</h2>
+      <div class="field">
+        <label for="total"><span class="chip"></span>Total blocks</label>
+        <div class="input-row"><input id="total" type="number" min="1" value="100000"><span class="unit">requests</span></div>
+        <span class="hint">Everything you plan to send in the test.</span>
+      </div>
+      <div class="field">
+        <label for="rate"><span class="chip"></span>Blocks arriving</label>
+        <div class="input-row"><input id="rate" type="number" min="1" value="60"><span class="unit">req / sec</span></div>
+        <span class="hint">How fast the load test pushes them in.</span>
+      </div>
+
+      <h2 class="group-title">The hole</h2>
+      <div class="field">
+        <label for="ms"><span class="chip hole"></span>Time in the hole</label>
+        <div class="input-row"><input id="ms" type="number" min="1" value="120"><span class="unit">ms each</span></div>
+        <span class="hint">Average response time of one request on an idle pod.</span>
+      </div>
+      <div class="field">
+        <label for="conc"><span class="chip hole"></span>Blocks at once, per pod</label>
+        <div class="input-row"><input id="conc" type="number" min="1" value="1"><span class="unit">at once</span></div>
+        <span class="hint">Single threaded JS doing real work: 1. One pod with 4 cores or workers: 4. Mostly waiting on a database: higher.</span>
+      </div>
+      <div class="field">
+        <label for="pods"><span class="chip hole"></span>Pods</label>
+        <div class="input-row"><input id="pods" type="number" min="1" value="10"><span class="unit">pods</span></div>
+      </div>
+      <div class="field">
+        <label for="lb"><span class="chip hole"></span>Load balancer limit</label>
+        <div class="input-row"><input id="lb" type="number" min="1" value="5000"><span class="unit">req / sec</span></div>
+        <span class="hint">The most it can pass. Leave it high if it is not the squeeze.</span>
+      </div>
+      <div class="field">
+        <label for="util"><span class="chip hole"></span>Keep the hole this full</label>
+        <div class="input-row"><input id="util" type="number" min="10" max="100" value="70"><span class="unit">% busy</span></div>
+        <span class="hint">Run hotter than about 70 to 80 and response times climb.</span>
+      </div>
+    </section>
+
+    <div style="display:grid;gap:20px;min-width:0">
+      <section class="panel" aria-live="polite">
+        <div class="verdict">
+          <span class="status" id="status">OK</span>
+          <p class="headline" id="headline"></p>
+          <p class="sub" id="sub"></p>
+        </div>
+        <div class="meter">
+          <div class="bar-wrap">
+            <div class="bar"><div class="cap" id="capBar"></div><div class="safe" id="safeBar"></div></div>
+            <div class="tick" id="rateTick"></div>
+          </div>
+          <div class="legend">
+            <span><i class="sw" style="background:var(--accent);opacity:.28"></i>Hole size (max req/s)</span>
+            <span><i class="sw" style="background:var(--accent);opacity:.6"></i>Safe level</span>
+            <span><i class="sw" style="background:var(--block)"></i>Blocks arriving</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>The answers</h2>
+        <div class="stats" id="stats"></div>
+        <p class="note">All of this comes from <a href="https://en.wikipedia.org/wiki/Little%27s_law" target="_blank" rel="noopener">Little's Law</a>: the number of requests in the system equals the arrival rate times the time each one spends there (<code>L = λ × W</code>). Turned round, <b>throughput = concurrency ÷ response time</b>. That is why a pod handling 1 request at a time, at 120 ms each, passes about 8 requests a second.</p>
+        <details>
+          <summary>How the numbers are worked out</summary>
+          <ul class="rules">
+            <li><span>One pod passes this many a second</span><code>blocks at once × 1000 ÷ ms in the hole</code></li>
+            <li><span>Size of the hole</span><code>pods × per pod, capped by the load balancer</code></li>
+            <li><span>Time to get them all through</span><code>total blocks ÷ the slower of arriving and hole size</code></li>
+            <li><span>Blocks inside the system at any moment</span><code>arriving per sec × ms ÷ 1000</code></li>
+            <li><span>Pods you need</span><code>arriving ÷ (per pod × safe level), rounded up</code></li>
+          </ul>
+        </details>
+      </section>
+
+      <section class="panel">
+        <h2>Why the front end cares</h2>
+        <p class="note">When the hole fills up, requests wait in the queue, so every response gets slower. The user sees that as a slow page: later first paint, later <b>Largest Contentful Paint</b>, buttons that lag. Backend numbers alone (requests per second, p95 latency) do not show how bad that feels, so measure both at the same time.</p>
+        <p class="note"><a href="https://grafana.com/docs/k6/latest/using-k6-browser/" target="_blank" rel="noopener">k6</a> does this directly. Its browser module drives a real Chromium and reports web vitals, and you can run it as one scenario alongside a normal protocol-level load scenario in the same test. Set a threshold on LCP and see it degrade as the load goes up. JMeter only speaks HTTP and does not render pages, so it needs extra pieces such as the <a href="https://jmeter-plugins.org/wiki/WebDriverSampler/" target="_blank" rel="noopener">WebDriver Sampler</a> plugin to get browser timings, which is more setup and harder to run at scale.</p>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var ids = ["total", "rate", "ms", "conc", "pods", "lb", "util"];
+  var n = function (id, min) { var v = parseFloat($(id).value); return isFinite(v) && v >= min ? v : min; };
+  var fmt = function (x, d) { return x.toLocaleString("en-GB", { maximumFractionDigits: d === undefined ? 0 : d }); };
+  function dur(s) {
+    if (s < 1) return fmt(s * 1000) + " ms";
+    if (s < 90) return fmt(s, 1) + " sec";
+    var m = s / 60;
+    if (m < 90) return fmt(m, 1) + " min";
+    var h = m / 60;
+    if (h < 48) return fmt(h, 1) + " hr";
+    return fmt(h / 24, 1) + " days";
+  }
+  function stat(k, v, note) {
+    return '<div class="stat"><span class="k">' + k + '</span><span class="v">' + v + '</span><span class="n">' + note + '</span></div>';
+  }
+  function calc() {
+    var total = n("total", 1), rate = n("rate", 1), ms = n("ms", 1), conc = n("conc", 1);
+    var pods = Math.round(n("pods", 1)), lb = n("lb", 1), util = Math.min(n("util", 10), 100) / 100;
+
+    var perPod = conc * 1000 / ms;
+    var podCap = pods * perPod;
+    var hole = Math.min(podCap, lb);
+    var safe = hole * util;
+    var squeeze = lb < podCap ? "load balancer" : "pods";
+    var through = Math.min(rate, hole);
+    var timeAll = total / through;
+    var inFlight = rate * ms / 1000;
+    var need = Math.ceil(rate / (perPod * util));
+    var fill = rate / hole;
+
+    var state = "ok", head, sub;
+    if (rate > hole) {
+      state = "bad";
+      head = "Too many blocks for the hole";
+      sub = "You send " + fmt(rate) + " req/s but only " + fmt(hole, 1) + " fit through. About " + fmt(rate - hole, 1) + " req/s pile up in a queue, and response times and errors climb during the test.";
+    } else if (rate > safe) {
+      state = "warn";
+      head = "It fits, but the hole is " + fmt(fill * 100) + "% full";
+      sub = "Past your safe level of " + fmt(util * 100) + "%. Expect slower responses as pods run hot. Add pods or send less.";
+    } else {
+      head = "Plenty of room, hole is " + fmt(fill * 100) + "% full";
+      sub = "Everything arriving gets through without a queue, with headroom left for spikes.";
+    }
+    $("status").className = "status" + (state === "ok" ? "" : " " + state);
+    $("status").textContent = state === "ok" ? "Fits" : state === "warn" ? "Tight" : "Overflow";
+    $("headline").textContent = head;
+    $("sub").textContent = sub;
+
+    var scale = Math.max(hole, rate) * 1.12;
+    $("capBar").style.width = (hole / scale * 100) + "%";
+    $("safeBar").style.width = (safe / scale * 100) + "%";
+    $("rateTick").style.left = (rate / scale * 100) + "%";
+
+    $("stats").innerHTML =
+      stat("One pod passes", fmt(perPod, 1) + " req/s", fmt(conc) + " at once, " + fmt(ms) + " ms each") +
+      stat("Size of the hole", fmt(hole, 1) + " req/s", "limited by the " + squeeze + (squeeze === "pods" ? " (" + fmt(pods) + " × " + fmt(perPod, 1) + ")" : "")) +
+      stat("Safe level", fmt(safe, 1) + " req/s", "at " + fmt(util * 100) + "% full") +
+      stat("Time to get all through", dur(timeAll), fmt(total) + " blocks at " + fmt(through, 1) + " req/s") +
+      stat("Blocks inside at once", fmt(inFlight, 1), "arriving × time in the hole") +
+      stat("Pods you need", fmt(need), need > pods ? "you have " + fmt(pods) + ", add " + fmt(need - pods) : "you have " + fmt(pods) + ", enough");
+  }
+  ids.forEach(function (id) { $(id).addEventListener("input", calc); });
+  calc();
+})();
+</script>
